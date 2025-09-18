@@ -1,8 +1,31 @@
 import React, { useState, useEffect } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { User, Mail, Lock, MapPin, Calendar } from "lucide-react";
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { userSignup } from '../lib/api.js'; // Adjust path to your api.js
 
 export default function UserSignupPage() {
+  const [signupData, setSignupData] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    address: '',
+    dob: '',
+  });
+
+  const queryClient = useQueryClient();
+  const { mutate: signupMutation, isPending, error } = useMutation({
+    mutationFn: userSignup,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['authUser'] }); // Refetch auth state to update routes
+    },
+  });
+
+  const handleSignup = (e) => {
+    e.preventDefault();
+    signupMutation(signupData);
+  };
+
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const orbX = useTransform(mouseX, [0, typeof window !== "undefined" ? window.innerWidth : 1920], [-20, 20]);
@@ -24,7 +47,6 @@ export default function UserSignupPage() {
         <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-r from-purple-500/40 to-pink-500/30 rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-r from-blue-500/30 to-purple-500/20 rounded-full blur-3xl"></div>
       </motion.div>
-
       {/* Left Side - Big Signup Text */}
       <div className="hidden lg:flex w-1/2 flex-col justify-center items-center p-12 relative z-10">
         <motion.h1
@@ -39,7 +61,6 @@ export default function UserSignupPage() {
           Explore authentic creations worldwide. Connect with artisans and find unique items just for you.
         </p>
       </div>
-
       {/* Right Side - Signup Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative z-10">
         <motion.div
@@ -48,7 +69,8 @@ export default function UserSignupPage() {
           animate={{ opacity: 1, y: 0 }}
         >
           <h2 className="text-3xl font-bold text-white mb-6">User Signup</h2>
-          <form className="space-y-5">
+          {error && <p className="text-red-500 mb-4">{error.response?.data?.message || 'Signup failed. Try again.'}</p>}
+          <form className="space-y-5" onSubmit={handleSignup}>
             {/* Name */}
             <div>
               <label className="text-white/70 text-sm mb-2 flex items-center gap-2">
@@ -58,6 +80,9 @@ export default function UserSignupPage() {
                 type="text"
                 placeholder="John Doe"
                 className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 backdrop-blur-sm text-white placeholder-white/40 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/40 transition-all"
+                value={signupData.fullName}
+                onChange={(e) => setSignupData({ ...signupData, fullName: e.target.value })}
+                required
               />
             </div>
             {/* Email */}
@@ -69,6 +94,9 @@ export default function UserSignupPage() {
                 type="email"
                 placeholder="you@example.com"
                 className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 backdrop-blur-sm text-white placeholder-white/40 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/40 transition-all"
+                value={signupData.email}
+                onChange={(e) => setSignupData({ ...signupData, email: e.target.value })}
+                required
               />
             </div>
             {/* Password */}
@@ -80,6 +108,9 @@ export default function UserSignupPage() {
                 type="password"
                 placeholder="••••••••"
                 className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 backdrop-blur-sm text-white placeholder-white/40 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/40 transition-all"
+                value={signupData.password}
+                onChange={(e) => setSignupData({ ...signupData, password: e.target.value })}
+                required
               />
             </div>
             {/* Address */}
@@ -91,6 +122,9 @@ export default function UserSignupPage() {
                 type="text"
                 placeholder="123 Artisan Lane, NY"
                 className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 backdrop-blur-sm text-white placeholder-white/40 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/40 transition-all"
+                value={signupData.address}
+                onChange={(e) => setSignupData({ ...signupData, address: e.target.value })}
+                required
               />
             </div>
             {/* Date of Birth */}
@@ -101,20 +135,22 @@ export default function UserSignupPage() {
               <input
                 type="date"
                 className="w-full px-4 py-3 rounded-lg bg-white/10 border border-white/20 backdrop-blur-sm text-white placeholder-white/60 focus:border-purple-400 focus:ring-2 focus:ring-purple-500/40 transition-all"
+                value={signupData.dob}
+                onChange={(e) => setSignupData({ ...signupData, dob: e.target.value })}
+                required
               />
             </div>
-
             {/* Signup Button */}
             <motion.button
               type="submit"
               className="w-full py-4 mt-4 rounded-xl font-bold text-white text-lg bg-gradient-to-r from-purple-500 to-pink-500 shadow-md hover:from-purple-600 hover:to-pink-600 relative overflow-hidden"
               whileHover={{ scale: 1.02, y: -2 }}
               whileTap={{ scale: 0.97 }}
+              disabled={isPending}
             >
-              Signup
+              {isPending ? 'Signing Up...' : 'Signup'}
             </motion.button>
           </form>
-
           <p className="mt-6 text-center text-white/60">
             Already have an account?{" "}
             <a href="/login" className="text-purple-400 hover:text-pink-400 font-semibold">

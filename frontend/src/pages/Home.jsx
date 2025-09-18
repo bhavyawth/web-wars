@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 export default function ArtisanLanding() {
   const [mounted, setMounted] = useState(false);
@@ -11,6 +12,8 @@ export default function ArtisanLanding() {
   const orb1Y = useTransform(mouseY, [0, window?.innerHeight || 1080], [0, 30]);
   const orb2X = useTransform(mouseX, [0, window?.innerWidth || 1920], [0, -20]);
   const orb2Y = useTransform(mouseY, [0, window?.innerHeight || 1080], [0, -20]);
+
+  const navigate=useNavigate()
 
   useEffect(() => {
     setMounted(true);
@@ -173,6 +176,7 @@ export default function ArtisanLanding() {
             variants={buttonVariants}
             whileHover="hover"
             whileTap="tap"
+             onClick={()=>{navigate("/user/signup")}}
           >
             <motion.div 
               className="flex items-center justify-center gap-3"
@@ -195,6 +199,7 @@ export default function ArtisanLanding() {
             variants={buttonVariants}
             whileHover="hover"
             whileTap="tap"
+            onClick={()=>{navigate("/seller/signup")}}
           >
             <motion.div 
               className="flex items-center justify-center gap-3"

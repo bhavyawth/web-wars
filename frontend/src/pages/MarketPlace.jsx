@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 import { Search, Heart, Star, ShoppingBag, MapPin, Sparkles, Filter } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { getAllProducts } from '../lib/api';
 
 export default function ArtisanMarketplace() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -12,9 +14,14 @@ export default function ArtisanMarketplace() {
   
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
-
   const backgroundX = useTransform(mouseX, [0, typeof window !== 'undefined' ? window.innerWidth : 1920], [-50, 50]);
   const backgroundY = useTransform(mouseY, [0, typeof window !== 'undefined' ? window.innerHeight : 1080], [-30, 30]);
+
+  // Fetch products using TanStack Query
+  const { data: products = [], isLoading, error } = useQuery({
+    queryKey: ['products'],
+    queryFn: getAllProducts,
+  });
 
   useEffect(() => {
     setMounted(true);
@@ -26,105 +33,55 @@ export default function ArtisanMarketplace() {
     return () => document.removeEventListener('mousemove', handleMouseMove);
   }, [mouseX, mouseY]);
 
-  const categories = [
-    { id: 'all', name: 'All Crafts', emoji: '✨', color: 'from-purple-500 to-pink-500' },
-    { id: 'jewelry', name: 'Jewelry', emoji: '💎', color: 'from-yellow-500 to-orange-500' },
-    { id: 'pottery', name: 'Pottery', emoji: '🏺', color: 'from-amber-500 to-red-500' },
-    { id: 'textiles', name: 'Textiles', emoji: '🧵', color: 'from-blue-500 to-indigo-500' },
-    { id: 'art', name: 'Paintings', emoji: '🎨', color: 'from-green-500 to-teal-500' },
-    { id: 'wood', name: 'Woodcraft', emoji: '🌳', color: 'from-amber-600 to-yellow-600' }
-  ];
+  // Get unique categories from products data
+  const getCategories = () => {
+    const uniqueCategories = [...new Set(products.map(product => product.category))];
+    const categoryEmojis = {
+      'electronics': '📱',
+      'jewelry': '💎',
+      'pottery': '🏺',
+      'textiles': '🧵',
+      'art': '🎨',
+      'wood': '🌳',
+      'clothing': '👕',
+      'books': '📚',
+      'home': '🏠',
+      'sports': '⚽'
+    };
+    
+    const categoryColors = {
+      'electronics': 'from-blue-500 to-cyan-500',
+      'jewelry': 'from-yellow-500 to-orange-500',
+      'pottery': 'from-amber-500 to-red-500',
+      'textiles': 'from-purple-500 to-pink-500',
+      'art': 'from-green-500 to-teal-500',
+      'wood': 'from-amber-600 to-yellow-600',
+      'clothing': 'from-pink-500 to-rose-500',
+      'books': 'from-indigo-500 to-purple-500',
+      'home': 'from-slate-500 to-gray-500',
+      'sports': 'from-emerald-500 to-green-500'
+    };
 
-  const products = [
-    {
-      id: 1,
-      name: 'Moonlight Silk Scarf',
-      artisan: { name: 'Maya Chen', avatar: '👩🏻‍🎨', story: 'Third generation silk weaver from the mountains of Rajasthan' },
-      location: 'Rajasthan, India',
-      price: 89,
-      rating: 4.9,
-      reviews: 127,
-      image: 'https://images.unsplash.com/photo-1590736969955-71cc94901144?w=600&h=600&fit=crop',
-      category: 'textiles',
-      story: 'Each thread tells a story of ancient traditions passed down through generations.',
-      craftTime: '3 weeks',
-      materials: 'Pure mulberry silk, natural dyes'
-    },
-    {
-      id: 2,
-      name: 'Zen Tea Ceremony Set',
-      artisan: { name: 'Kenji Tanaka', avatar: '👨🏻‍🎨', story: 'Master potter trained in the ancient Raku technique' },
-      location: 'Kyoto, Japan',
-      price: 156,
-      rating: 5.0,
-      reviews: 89,
-      image: 'https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=600&h=600&fit=crop',
-      category: 'pottery',
-      story: 'Handcrafted using 500-year-old techniques, each piece is unique.',
-      craftTime: '2 weeks',
-      materials: 'Local clay, ash glaze'
-    },
-    {
-      id: 3,
-      name: 'Ethereal Silver Ring',
-      artisan: { name: 'Sofia Rodriguez', avatar: '👩🏽‍🎨', story: 'Jewelry artist inspired by Aztec heritage and modern minimalism' },
-      location: 'Mexico City, Mexico',
-      price: 78,
-      rating: 4.8,
-      reviews: 203,
-      image: 'https://images.unsplash.com/photo-1515562141207-7a88fb7ce338?w=600&h=600&fit=crop',
-      category: 'jewelry',
-      story: 'Sterling silver shaped by hand, no two pieces are identical.',
-      craftTime: '5 days',
-      materials: '925 Sterling silver, traditional tools'
-    },
-    {
-      id: 4,
-      name: 'Forest Spirit Bowl',
-      artisan: { name: 'Erik Johansson', avatar: '👨🏼‍🎨', story: 'Wood sculptor using only fallen timber from Swedish forests' },
-      location: 'Stockholm, Sweden',
-      price: 92,
-      rating: 4.7,
-      reviews: 156,
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=600&h=600&fit=crop',
-      category: 'wood',
-      story: 'Carved from ancient oak, preserving the tree\'s natural beauty.',
-      craftTime: '1 week',
-      materials: 'Swedish oak, natural beeswax finish'
-    },
-    {
-      id: 5,
-      name: 'Ocean Dreams Canvas',
-      artisan: { name: 'Amara Williams', avatar: '👩🏾‍🎨', story: 'Contemporary artist capturing the soul of African landscapes' },
-      location: 'Cape Town, South Africa',
-      price: 245,
-      rating: 4.9,
-      reviews: 67,
-      image: 'https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=600&h=600&fit=crop',
-      category: 'art',
-      story: 'Mixed media artwork inspired by the meeting of ocean and sky.',
-      craftTime: '1 month',
-      materials: 'Canvas, acrylic, gold leaf'
-    },
-    {
-      id: 6,
-      name: 'Desert Light Holders',
-      artisan: { name: 'Ahmed Hassan', avatar: '👨🏽‍🎨', story: 'Metalsmith continuing family traditions from the souks of Marrakech' },
-      location: 'Marrakech, Morocco',
-      price: 67,
-      rating: 4.6,
-      reviews: 94,
-      image: 'https://images.unsplash.com/photo-1598300042247-d088f8ab3a91?w=600&h=600&fit=crop',
-      category: 'jewelry',
-      story: 'Hand-hammered brass reflecting centuries of Moroccan craftsmanship.',
-      craftTime: '4 days',
-      materials: 'Recycled brass, traditional hammer techniques'
-    }
-  ];
+    return [
+      { id: 'all', name: 'All Products', emoji: '✨', color: 'from-purple-500 to-pink-500' },
+      ...uniqueCategories.map(category => ({
+        id: category,
+        name: category.charAt(0).toUpperCase() + category.slice(1),
+        emoji: categoryEmojis[category] || '🛍️',
+        color: categoryColors[category] || 'from-gray-500 to-slate-500'
+      }))
+    ];
+  };
+
+  const categories = getCategories();
 
   const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         product.artisan.name.toLowerCase().includes(searchQuery.toLowerCase());
+    if (!product.isActive) return false;
+    
+    const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         product.seller.businessName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         product.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                         product.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === 'all' || product.category === selectedCategory;
     return matchesSearch && matchesCategory;
   });
@@ -141,7 +98,7 @@ export default function ArtisanMarketplace() {
     });
   };
 
-  if (!mounted) {
+  if (!mounted || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <motion.div 
@@ -149,8 +106,18 @@ export default function ArtisanMarketplace() {
           animate={{ opacity: [0.5, 1, 0.5] }}
           transition={{ duration: 1.5, repeat: Infinity }}
         >
-          Curating artisan treasures...
+          {isLoading ? 'Loading products...' : 'Curating artisan treasures...'}
         </motion.div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
+        <div className="text-white text-xl">
+          Error loading products. Please try again.
+        </div>
       </div>
     );
   }
@@ -266,7 +233,7 @@ export default function ArtisanMarketplace() {
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-white/50" size={20} />
               <input
                 type="text"
-                placeholder="Search by craft or artisan name..."
+                placeholder="Search by product, seller, or tags..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full bg-white/10 backdrop-blur-sm border-2 border-white/20 rounded-2xl py-4 pl-12 pr-4 text-white placeholder-white/50 focus:outline-none focus:border-purple-400 focus:bg-white/20 transition-all text-lg"
@@ -274,7 +241,7 @@ export default function ArtisanMarketplace() {
             </div>
           </motion.div>
 
-          {/* Unique Category Selector */}
+          {/* Category Selector */}
           <motion.div 
             className="flex flex-wrap justify-center gap-4 mb-12"
             initial={{ y: 30, opacity: 0 }}
@@ -315,10 +282,10 @@ export default function ArtisanMarketplace() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.7 }}
           >
-            {filteredProducts.length} handcrafted treasures await you
+            {filteredProducts.length} products available
           </motion.p>
 
-          {/* Unique Product Grid */}
+          {/* Product Grid */}
           <motion.div 
             className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8"
             layout
@@ -326,7 +293,7 @@ export default function ArtisanMarketplace() {
             <AnimatePresence mode="popLayout">
               {filteredProducts.map((product, index) => (
                 <motion.div
-                  key={product.id}
+                  key={product._id}
                   layout
                   initial={{ scale: 0.8, opacity: 0, y: 50 }}
                   animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -338,7 +305,7 @@ export default function ArtisanMarketplace() {
                     stiffness: 100
                   }}
                   className="group relative"
-                  onHoverStart={() => setHoveredProduct(product.id)}
+                  onHoverStart={() => setHoveredProduct(product._id)}
                   onHoverEnd={() => setHoveredProduct(null)}
                 >
                   <div className="relative bg-white/5 backdrop-blur-sm rounded-3xl border border-white/10 overflow-hidden hover:bg-white/10 transition-all duration-500 hover:scale-[1.02] hover:-translate-y-2">
@@ -346,31 +313,38 @@ export default function ArtisanMarketplace() {
                     {/* Product Image */}
                     <div className="relative h-80 overflow-hidden">
                       <motion.img 
-                        src={product.image} 
-                        alt={product.name}
+                        src={product.images && product.images[0] ? product.images[0] : 'https://images.unsplash.com/photo-1560472354-b33ff0c44a43?w=600&h=600&fit=crop'} 
+                        alt={product.title}
                         className="w-full h-full object-cover"
                         whileHover={{ scale: 1.1 }}
                         transition={{ duration: 0.6 }}
                       />
                       
+                      {/* Stock indicator */}
+                      {product.quantity === 0 && (
+                        <div className="absolute top-4 left-4 bg-red-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                          Out of Stock
+                        </div>
+                      )}
+                      
                       {/* Floating Action Buttons */}
                       <div className="absolute top-4 right-4 flex flex-col gap-2">
                         <motion.button
-                          onClick={() => toggleFavorite(product.id)}
+                          onClick={() => toggleFavorite(product._id)}
                           className="p-2 bg-white/20 backdrop-blur-sm rounded-full border border-white/20"
                           whileHover={{ scale: 1.2, rotate: 10 }}
                           whileTap={{ scale: 0.8 }}
                         >
                           <Heart 
                             size={16} 
-                            className={`${favorites.has(product.id) ? 'fill-pink-500 text-pink-500' : 'text-white'}`}
+                            className={`${favorites.has(product._id) ? 'fill-pink-500 text-pink-500' : 'text-white'}`}
                           />
                         </motion.button>
                       </div>
 
-                      {/* Gradient Overlay on Hover */}
+                      {/* Product Info Overlay on Hover */}
                       <AnimatePresence>
-                        {hoveredProduct === product.id && (
+                        {hoveredProduct === product._id && (
                           <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -378,10 +352,12 @@ export default function ArtisanMarketplace() {
                             className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end p-6"
                           >
                             <div className="text-white">
-                              <p className="text-sm mb-2 opacity-90">✨ {product.story}</p>
+                              <p className="text-sm mb-2 opacity-90">{product.description}</p>
                               <div className="flex items-center gap-4 text-xs">
-                                <span>🕐 {product.craftTime}</span>
-                                <span>🎨 {product.materials}</span>
+                                <span>📦 Stock: {product.quantity}</span>
+                                {product.tags.length > 0 && (
+                                  <span>🏷️ {product.tags.slice(0, 2).join(', ')}</span>
+                                )}
                               </div>
                             </div>
                           </motion.div>
@@ -394,16 +370,17 @@ export default function ArtisanMarketplace() {
                       <div className="flex items-start justify-between mb-3">
                         <div>
                           <h3 className="text-white font-bold text-xl mb-1 group-hover:text-purple-300 transition-colors">
-                            {product.name}
+                            {product.title}
                           </h3>
                           <div className="flex items-center gap-2 text-white/60">
-                            <span className="text-lg">{product.artisan.avatar}</span>
+                            <span className="text-lg">🏪</span>
                             <div>
-                              <p className="text-sm">{product.artisan.name}</p>
-                              <p className="text-xs flex items-center gap-1">
-                                <MapPin size={12} />
-                                {product.location}
-                              </p>
+                              <p className="text-sm">{product.seller.businessName}</p>
+                              <div className="flex items-center gap-1">
+                                {product.seller.verified && (
+                                  <span className="text-green-400 text-xs">✓ Verified</span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -411,19 +388,41 @@ export default function ArtisanMarketplace() {
                           <div className="text-2xl font-bold text-white">${product.price}</div>
                           <div className="flex items-center gap-1">
                             <Star className="fill-yellow-400 text-yellow-400" size={14} />
-                            <span className="text-white/60 text-sm">{product.rating}</span>
+                            <span className="text-white/60 text-sm">
+                              {product.rating > 0 ? product.rating : 'New'}
+                            </span>
+                            {product.totalReviews > 0 && (
+                              <span className="text-white/40 text-xs">({product.totalReviews})</span>
+                            )}
                           </div>
                         </div>
                       </div>
 
-                      <p className="text-white/50 text-sm mb-4 italic">"{product.artisan.story}"</p>
+                      {/* Tags */}
+                      {product.tags.length > 0 && (
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {product.tags.slice(0, 3).map((tag, idx) => (
+                            <span 
+                              key={idx}
+                              className="bg-white/10 text-white/70 px-2 py-1 rounded-lg text-xs"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      )}
 
                       <motion.button
-                        className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold py-3 rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg"
-                        whileHover={{ scale: 1.02, y: -1 }}
-                        whileTap={{ scale: 0.98 }}
+                        className={`w-full font-semibold py-3 rounded-xl transition-all shadow-lg ${
+                          product.quantity > 0 
+                            ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600' 
+                            : 'bg-gray-500 text-gray-300 cursor-not-allowed'
+                        }`}
+                        whileHover={product.quantity > 0 ? { scale: 1.02, y: -1 } : {}}
+                        whileTap={product.quantity > 0 ? { scale: 0.98 } : {}}
+                        disabled={product.quantity === 0}
                       >
-                        Add to Collection
+                        {product.quantity > 0 ? 'Add to Cart' : 'Out of Stock'}
                       </motion.button>
                     </div>
                   </div>
@@ -431,6 +430,19 @@ export default function ArtisanMarketplace() {
               ))}
             </AnimatePresence>
           </motion.div>
+
+          {/* No products message */}
+          {filteredProducts.length === 0 && (
+            <motion.div 
+              className="text-center py-16"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <div className="text-6xl mb-4">🔍</div>
+              <h3 className="text-white text-xl mb-2">No products found</h3>
+              <p className="text-white/60">Try adjusting your search or category filters</p>
+            </motion.div>
+          )}
         </div>
       </div>
     </div>
