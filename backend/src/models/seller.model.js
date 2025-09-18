@@ -55,6 +55,8 @@ const sellerSchema = new mongoose.Schema(
         ref: "User",
       }
     ],
+    verificationToken: { type: String },               // hashed token
+    verificationTokenExpires: { type: Date }, // expiry time
   },
   {
     timestamps: true,

@@ -2,6 +2,7 @@ import { generateToken } from '../lib/utils.js';
 import Seller from '../models/seller.model.js';
 import bcrypt from 'bcryptjs';
 import cloudinary from '../lib/cloudinary.js';
+import { createVerificationToken, sendVerificationEmail } from "../lib/utils.js";
 
 export const signupHandler = async (req, res) => {
   try {
@@ -27,7 +28,7 @@ export const signupHandler = async (req, res) => {
     });
 
     generateToken(newSeller._id, "seller", res);
-
+    
     return res.status(201).json({
       message: "Seller created successfully",
       user: newSeller,
@@ -158,5 +159,63 @@ export const getFollowersHandler = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
+
+export const sendVerificationHandler = async (req, res) => {
+  try {
+    const sellerId = req.user._id; // from auth middleware
+    const seller = await Seller.findById(sellerId);
+
+    if (!seller) {
+      return res.status(404).json({ message: "Seller not found" });
+    }
+
+    if (seller.verified) {
+      return res.status(400).json({ message: "Seller already verified" });
+    }
+
+    const { token, hashedToken, expires } = createVerificationToken();
+    seller.verificationToken = hashedToken;
+    seller.verificationTokenExpires = expires;
+
+    await seller.save();
+
+    await sendVerificationEmail(seller.email, token);
+
+    res.json({ message: "Verification email sent successfully" });
+  } catch (err) {
+    console.error("Error in sendVerificationHandler:", err);
+    res.status(500).json({ message: "Failed to send verification email" });
+  }
+};
+
+export const verifySeller = async (req, res) => {
+  try {
+    const { token } = req.query;
+    if (!token) return res.status(400).json({ message: "Token is required" });
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const seller = await Seller.findOne({
+      verificationToken: hashedToken,
+      verificationTokenExpires: { $gt: Date.now() },
+    });
+
+    if (!seller) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    seller.verified = true;
+    seller.verificationToken = undefined;
+    seller.verificationTokenExpires = undefined;
+
+    await seller.save();
+
+    res.json({ message: "Seller verified successfully!" });
+  } catch (err) {
+    console.error("Error in verifySeller:", err);
+    res.status(500).json({ message: "Verification failed" });
   }
 };
