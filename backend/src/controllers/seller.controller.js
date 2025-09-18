@@ -30,7 +30,8 @@ export const signupHandler = async (req, res) => {
 
     return res.status(201).json({
       message: "Seller created successfully",
-      seller: newSeller
+      user: newSeller,
+      type: "seller"
     });
 
   } catch (error) {
@@ -61,7 +62,8 @@ export const loginHandler = async (req, res) => {
 
     return res.status(200).json({
       message: "Login successful",
-      seller
+      user: seller,
+      type: "seller"
     });
 
   } catch (error) {
@@ -114,7 +116,8 @@ export const updateProfileHandler = async (req, res) => {
 
     return res.status(200).json({
       message: "Profile updated successfully",
-      seller: updatedSeller
+      user: updatedSeller,
+      type: "seller"
     });
 
   } catch (error) {
@@ -134,10 +137,26 @@ export const checkAuthHandler = async (req, res) => {
       return res.status(404).json({ message: "Seller not found" });
     }
 
-    return res.status(200).json({ seller });
+    return res.status(200).json({ user: seller,
+      type: "seller" });
 
   } catch (error) {
     console.error("Error in checkAuthHandler:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
+export const getFollowersHandler = async (req, res) => {
+  try {
+    const sellerId = req.params.sellerId;
+    const seller = await Seller.findById(sellerId);
+
+    if (!seller) return res.status(404).json({ message: "Seller not found" });
+
+    const followersCount = seller.followers ? seller.followers.length : 0;
+    res.json({ sellerId, followersCount });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ message: "Internal server error", error: error.message });
   }
 };

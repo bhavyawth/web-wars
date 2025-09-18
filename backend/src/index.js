@@ -6,18 +6,28 @@ dotenv.config();
 import { connectDB } from './lib/db.js';
 import userRoutes from "./routes/user.route.js";
 import sellerRoutes from "./routes/seller.route.js";
-// import productRoutes from "./routes/product.route.js";
-// import orderRoutes from "./routes/order.route.js"; 
+import productRoutes from "./routes/product.route.js";
+import orderRoutes from "./routes/order.route.js"; 
+import cartRoutes from "./routes/cart.route.js";
+import statsRoutes from "./routes/stats.route.js";
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5173',
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 app.use("/api/user", userRoutes);    
 app.use("/api/seller", sellerRoutes);
+app.use("/api/products", productRoutes);
+app.use("/api/cart", cartRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/stats", statsRoutes);
 
 const startServer = async () => {
   try {
