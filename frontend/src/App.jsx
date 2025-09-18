@@ -9,11 +9,13 @@ import SellerAddItemPage from "./pages/AddItem.jsx";
 import UserSignupPage from "./pages/UserSignup.jsx";
 import SellerSignupPage from "./pages/SellerSignup.jsx";
 import useAuthUser from "./hooks/useAuthUser"; // Adjust path
+import SellerCorner from "./pages/SellerCorner.jsx";
+import CartPage from "./pages/Cart.jsx";
+import SellerBaby from "./pages/Dashboard.jsx";
 
 function App() {
-  const { isLoading, authUser } = useAuthUser();
+  const { isLoading, authUser,type } = useAuthUser();
   const isAuthenticated = Boolean(authUser);
- 
   if (isLoading) {
     return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">Loading...</div>; // Simple loader
   }
@@ -23,7 +25,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} /> {/* Public */}
         <Route path="/market" element={<ArtisanMarketplace />} /> {/* Public */}
-        <Route path="/product" element={<ProductDetailPage />} /> {/* Public? Add guard if needed */}
+        <Route path="/product/:id" element={<ProductDetailPage />} /> {/* Public? Add guard if needed */}
         <Route
           path="/seller"
           element={isAuthenticated ? <SellerProfilePage /> : <Navigate to="/user/signup" />} // Protect seller profile
@@ -44,6 +46,12 @@ function App() {
           path="/seller/signup"
           element={!isAuthenticated ? <SellerSignupPage /> : <Navigate to="/market" />} // Similar for seller
         />
+        <Route
+          path="/seller/dashboard"
+          element={isAuthenticated && type=="seller"? <SellerCorner /> : <Navigate to="/market" />} // Similar for seller
+        />
+        <Route path="/cart" element={isAuthenticated?<CartPage/>:<Navigate to={"/"}/>}/>
+        <Route path="/baby" element={<SellerBaby/>}></Route>
       </Routes>
       <NavigationBar />
     </>

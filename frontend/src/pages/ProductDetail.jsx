@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion, useMotionValue, useTransform, AnimatePresence } from 'framer-motion';
 import { Heart, Star, ShoppingBag, MapPin, Clock, Palette, Shield, Truck, ArrowLeft, Share2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { getProduct } from '../lib/api';
+import { useParams } from 'react-router-dom';
 
-export default function ProductDetailPage() {
+export default function ProductDetailPage({ productId }) {  // Assuming productId is passed as prop (e.g., from route)
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
   const [activeTab, setActiveTab] = useState('story');
   const [mounted, setMounted] = useState(false);
-  
+
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
   const backgroundX = useTransform(mouseX, [0, typeof window !== 'undefined' ? window.innerWidth : 1920], [-30, 30]);
@@ -24,51 +27,55 @@ export default function ProductDetailPage() {
     return () => document.removeEventListener('mousemove', handleMouseMove);
   }, [mouseX, mouseY]);
 
-  const product = {
-    id: 1,
-    name: 'Moonlight Silk Scarf',
-    price: 89,
-    originalPrice: 120,
-    rating: 4.9,
-    totalReviews: 127,
-    inStock: 8,
-    images: [
-      'https://images.unsplash.com/photo-1590736969955-71cc94901144?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1594736797933-d0401ba2fe65?w=800&h=800&fit=crop',
-      'https://images.unsplash.com/photo-1590736969955-71cc94901144?w=800&h=800&fit=crop'
-    ],
-    category: 'Textiles',
+  const {id}=useParams()
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['product', id],
+    queryFn: () => getProduct(id),  // 👈 return the promise
+    enabled: !!id,                  // only run when id is available
+  });
+
+  // Normalize fetched data to match expected structure, with placeholders for missing fields
+  const product = data ? {
+    id: data._id,
+    name: data.title?.replace(/"/g, '').trim() || 'Untitled Product',
+    price: data.price || 0,
+    originalPrice: null,  // Not in data, can add logic if needed
+    rating: data.rating || 0,
+    totalReviews: data.totalReviews || 0,
+    inStock: data.quantity || 0,
+    images: data.images && data.images.length > 0 ? data.images : ['https://via.placeholder.com/800x800'],
+    category: data.category?.replace(/"/g, '').trim() || 'Uncategorized',
     artisan: {
-      name: 'Maya Chen',
-      avatar: '👩🏻‍🎨',
-      location: 'Rajasthan, India',
-      experience: '15 years',
-      speciality: 'Traditional silk weaving',
-      story: 'Maya learned the ancient art of silk weaving from her grandmother in the remote villages of Rajasthan. Each piece she creates carries the wisdom of generations, using techniques passed down through her family for over 200 years.',
-      totalProducts: 47,
-      followers: 2340,
-      rating: 4.8
+      name: data.seller?.businessName?.trim() || 'Unknown Artisan',
+      avatar: '🛍️',  // Placeholder
+      location: 'Global',  // Placeholder, not in data
+      experience: '',  // Placeholder
+      speciality: data.tags ? data.tags.join(', ') : '',  // Use tags as speciality
+      story: data.description?.replace(/"/g, '').trim() || 'No story available',
+      totalProducts: 0,  // Placeholder
+      followers: 0,  // Placeholder
+      rating: data.rating || 0
     },
-    description: 'This exquisite silk scarf captures the ethereal beauty of moonlight dancing on water. Hand-woven using traditional techniques, each thread is carefully selected and dyed with natural pigments sourced from the Thar Desert.',
-    story: 'Born from the quiet hours of dawn in Maya\'s village workshop, this scarf represents three weeks of meditative craftsmanship. The intricate patterns tell the story of desert nights and the eternal dance between earth and sky.',
+    description: data.description?.replace(/"/g, '').trim() || 'No description available',
+    story: data.description?.replace(/"/g, '').trim() || 'No story available',
     details: {
-      material: '100% Mulberry Silk',
-      dimensions: '70" x 28"',
-      weight: '120g',
-      careInstructions: 'Dry clean only',
-      origin: 'Handcrafted in Rajasthan, India',
-      craftTime: '3 weeks',
-      uniqueFeatures: ['Natural dyes only', 'Traditional loom woven', 'Each piece unique']
+      material: data.tags ? data.tags.join(', ') : 'Various materials',
+      dimensions: '',  // Not in data
+      weight: '',  // Not in data
+      careInstructions: '',  // Not in data
+      origin: '',  // Not in data
+      craftTime: '',  // Not in data
+      uniqueFeatures: data.tags || []  // Use tags as features
     },
     sustainability: {
-      ecofriendly: true,
-      fairTrade: true,
-      carbonNeutral: true,
-      packaging: 'Recycled materials'
+      ecofriendly: data.isActive,  // Arbitrary mapping, adjust as needed
+      fairTrade: data.seller?.verified || false,
+      carbonNeutral: false,  // Placeholder
+      packaging: ''  // Placeholder
     }
-  };
+  } : null;
 
+  // Keep dummy reviews and relatedProducts as they are not part of fetched data
   const reviews = [
     {
       id: 1,
@@ -116,7 +123,7 @@ export default function ProductDetailPage() {
     setSelectedImageIndex((prev) => (prev - 1 + product.images.length) % product.images.length);
   };
 
-  if (!mounted) {
+  if (!mounted || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <motion.div 
@@ -126,6 +133,14 @@ export default function ProductDetailPage() {
         >
           Loading artisan details...
         </motion.div>
+      </div>
+    );
+  }
+
+  if (error || !product) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center text-white text-xl">
+        Error loading product: {error?.message || 'Product not found'}
       </div>
     );
   }
@@ -140,7 +155,6 @@ export default function ProductDetailPage() {
         <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-r from-purple-500/30 to-pink-500/30 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-r from-blue-500/30 to-purple-500/30 rounded-full blur-3xl"></div>
       </motion.div>
-
       {/* Header */}
       <motion.header 
         className="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/80 border-b border-white/10"
@@ -183,7 +197,6 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </motion.header>
-
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-8">
         {/* Main Product Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
@@ -219,13 +232,11 @@ export default function ProductDetailPage() {
               >
                 <ChevronRight className="text-white" size={20} />
               </button>
-
               {/* Image Counter */}
               <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 bg-black/50 backdrop-blur-sm rounded-full px-3 py-1">
                 <span className="text-white text-sm">{selectedImageIndex + 1} / {product.images.length}</span>
               </div>
             </div>
-
             {/* Thumbnail Gallery */}
             <div className="grid grid-cols-4 gap-3">
               {product.images.map((image, index) => (
@@ -245,7 +256,6 @@ export default function ProductDetailPage() {
               ))}
             </div>
           </motion.div>
-
           {/* Product Info */}
           <motion.div 
             className="space-y-6"
@@ -263,7 +273,6 @@ export default function ProductDetailPage() {
                 Only {product.inStock} left in stock
               </span>
             </div>
-
             {/* Product Name & Rating */}
             <div>
               <h1 className="text-4xl font-bold text-white mb-3">{product.name}</h1>
@@ -281,7 +290,6 @@ export default function ProductDetailPage() {
                 <span className="text-white/60">({product.totalReviews} reviews)</span>
               </div>
             </div>
-
             {/* Pricing */}
             <div className="flex items-center gap-4">
               <span className="text-4xl font-bold text-white">${product.price}</span>
@@ -294,12 +302,10 @@ export default function ProductDetailPage() {
                 </span>
               )}
             </div>
-
             {/* Description */}
             <p className="text-white/80 text-lg leading-relaxed">
               {product.description}
             </p>
-
             {/* Key Details */}
             <div className="grid grid-cols-2 gap-4">
               <div className="flex items-center gap-3 p-4 bg-white/5 rounded-xl border border-white/10">
@@ -317,7 +323,6 @@ export default function ProductDetailPage() {
                 </div>
               </div>
             </div>
-
             {/* Sustainability Badges */}
             <div className="flex gap-3">
               {product.sustainability.ecofriendly && (
@@ -333,7 +338,6 @@ export default function ProductDetailPage() {
                 </div>
               )}
             </div>
-
             {/* Quantity & Add to Cart */}
             <div className="space-y-4">
               <div className="flex items-center gap-4">
@@ -354,7 +358,6 @@ export default function ProductDetailPage() {
                   </button>
                 </div>
               </div>
-
               <div className="flex gap-4">
                 <motion.button
                   className="flex-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-4 rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg"
@@ -377,7 +380,6 @@ export default function ProductDetailPage() {
                 </motion.button>
               </div>
             </div>
-
             {/* Trust Badges */}
             <div className="flex items-center gap-6 pt-4 border-t border-white/10">
               <div className="flex items-center gap-2 text-white/80">
@@ -391,7 +393,6 @@ export default function ProductDetailPage() {
             </div>
           </motion.div>
         </div>
-
         {/* Artisan Profile */}
         <motion.section 
           className="mb-16"
@@ -449,7 +450,6 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </motion.section>
-
         {/* Product Details Tabs */}
         <motion.section 
           className="mb-16"
@@ -479,7 +479,6 @@ export default function ProductDetailPage() {
                 </button>
               ))}
             </div>
-
             {/* Tab Content */}
             <div className="p-8">
               <AnimatePresence mode="wait">
@@ -503,7 +502,6 @@ export default function ProductDetailPage() {
                     </div>
                   </motion.div>
                 )}
-
                 {activeTab === 'details' && (
                   <motion.div
                     key="details"
@@ -545,7 +543,6 @@ export default function ProductDetailPage() {
                     </div>
                   </motion.div>
                 )}
-
                 {activeTab === 'care' && (
                   <motion.div
                     key="care"
@@ -585,7 +582,6 @@ export default function ProductDetailPage() {
             </div>
           </div>
         </motion.section>
-
         {/* Reviews Section */}
         <motion.section 
           className="mb-16"
@@ -633,7 +629,6 @@ export default function ProductDetailPage() {
             ))}
           </div>
         </motion.section>
-
         {/* Related Products */}
         <motion.section 
           className="mb-24"

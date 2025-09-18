@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { motion, useMotionValue, useTransform } from "framer-motion";
 import { MapPin, ShoppingBag, Calendar, CheckCircle, Clock, Truck } from "lucide-react";
+import useAuthUser from "../hooks/useAuthUser";
 
 export default function UserProfilePage() {
   const [mounted, setMounted] = useState(false);
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
+  const { isLoading, authUser } = useAuthUser();
 
   const orbX = useTransform(mouseX, [0, typeof window !== "undefined" ? window.innerWidth : 1920], [-30, 30]);
   const orbY = useTransform(mouseY, [0, typeof window !== "undefined" ? window.innerHeight : 1080], [-20, 20]);
@@ -20,41 +22,35 @@ export default function UserProfilePage() {
     return () => document.removeEventListener("mousemove", handleMouseMove);
   }, [mouseX, mouseY]);
 
-  const user = {
-    name: "Alex Johnson",
-    avatar: "👨🏻",
-    location: "New York, USA",
-    address: "123 Artisan Street, Brooklyn, NY 11215",
-    joined: "Joined August 2022",
-    orders: [
-      {
-        id: 1,
-        product: "Handwoven Silk Scarf",
-        date: "Sep 12, 2025",
-        status: "Delivered",
-        price: 89,
-        image: "https://images.unsplash.com/photo-1590736969955-71cc94901144?w=200&h=200&fit=crop",
-      },
-      {
-        id: 2,
-        product: "Ceramic Tea Set",
-        date: "Aug 25, 2025",
-        status: "Shipped",
-        price: 156,
-        image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=200&h=200&fit=crop",
-      },
-      {
-        id: 3,
-        product: "Abstract Canvas Art",
-        date: "Jul 30, 2025",
-        status: "Processing",
-        price: 245,
-        image: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=200&h=200&fit=crop",
-      },
-    ],
-  };
+  // Dummy order history
+  const dummyOrders = [
+    {
+      id: 1,
+      product: "Handwoven Silk Scarf",
+      date: "Sep 12, 2025",
+      status: "Delivered",
+      price: 89,
+      image: "https://images.unsplash.com/photo-1590736969955-71cc94901144?w=200&h=200&fit=crop",
+    },
+    {
+      id: 2,
+      product: "Ceramic Tea Set",
+      date: "Aug 25, 2025",
+      status: "Shipped",
+      price: 156,
+      image: "https://images.unsplash.com/photo-1578662996442-48f60103fc96?w=200&h=200&fit=crop",
+    },
+    {
+      id: 3,
+      product: "Abstract Canvas Art",
+      date: "Jul 30, 2025",
+      status: "Processing",
+      price: 245,
+      image: "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=200&h=200&fit=crop",
+    },
+  ];
 
-  if (!mounted) {
+  if (!mounted || isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
         <motion.div
@@ -67,6 +63,26 @@ export default function UserProfilePage() {
       </div>
     );
   }
+
+  if (!authUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center text-white text-xl">
+        No user profile found.
+      </div>
+    );
+  }
+
+  // Normalize authUser data
+  const user = {
+    name: authUser.fullName || "Unknown User",
+    avatar: authUser.profilePic || "https://via.placeholder.com/150",  // Use profilePic
+    location: "Unknown Location",  // Placeholder
+    address: "No address provided",  // Placeholder
+    joined: authUser.createdAt 
+      ? `User since ${new Date(authUser.createdAt).toLocaleDateString('default', { month: 'long', year: 'numeric' })}` 
+      : "Join date unknown",
+    orders: dummyOrders,  // Using dummy as specified
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
@@ -84,7 +100,11 @@ export default function UserProfilePage() {
           animate={{ opacity: 1, y: 0 }}
         >
           {/* Avatar */}
-          <div className="text-7xl">{user.avatar}</div>
+          <img 
+            src={user.avatar} 
+            alt="Profile" 
+            className="w-24 h-24 rounded-full object-cover" 
+          />
 
           {/* User Info */}
           <div className="flex-1 space-y-4 text-center lg:text-left">
@@ -136,3 +156,4 @@ export default function UserProfilePage() {
     </div>
   );
 }
+  

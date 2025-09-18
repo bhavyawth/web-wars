@@ -38,15 +38,13 @@ export const createProduct = async (req, res) => {
     res.status(500).json({ message: "Internal server error", error: err.message });
   }
 };
+// backend/src/controllers/product.controller.js
 
 export const updateProduct = async (req, res) => {
   try {
     const product = await Product.findById(req.params.id);
 
     if (!product) return res.status(404).json({ message: "Product not found" });
-    if (product.seller.toString() !== req.user.sellerId)
-      return res.status(403).json({ message: "Not authorized" });
-
     const { title, description, price, category, tags, quantity, images } = req.body;
 
     if (title) product.title = title;
@@ -127,17 +125,15 @@ export const getProductById = async (req, res) => {
 
 export const deleteProduct = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id);
+    const product = await Product.findByIdAndDelete(req.params.id);
     if (!product) return res.status(404).json({ message: "Product not found" });
-    if (product.seller.toString() !== req.user.sellerId)
-      return res.status(403).json({ message: "Not authorized" });
+    
     for (const url of product.images) {
       const segments = url.split("/");
       const filename = segments[segments.length - 1]; 
       const publicId = `products/${filename.split(".")[0]}`;
       await cloudinary.uploader.destroy(publicId);
     }
-    await product.remove();
     res.json({ message: "Product deleted successfully" });
   } catch (err) {
     console.error(err);
