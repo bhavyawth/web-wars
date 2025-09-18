@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import PrizeGrid from '../components/PrizeGrid';
 import { 
   ShoppingBag, Trash2, Plus, Minus, Heart, 
   ArrowLeft, Tag, Truck, Shield, Star,
@@ -14,6 +15,9 @@ export default function CartPage() {
   const [selectedShipping, setSelectedShipping] = useState('standard');
   const [mounted, setMounted] = useState(false);
   const [savedItems, setSavedItems] = useState([]); // Keep local for "save for later"
+
+  const [showPrizeGrid, setShowPrizeGrid] = useState(false);
+  const [prizeApplied, setPrizeApplied] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -63,6 +67,20 @@ export default function CartPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+  useEffect(() => {
+    if (!mounted || prizeApplied || !cart) return;
+
+    const subtotal = cart.products.reduce(
+      (sum, item) => sum + item.product.price * item.quantity,
+      0
+    );
+
+    // Trigger PrizeGrid if subtotal > $50
+    if (subtotal > 50) {
+      setShowPrizeGrid(true);
+    }
+  }, [cart, mounted, prizeApplied]);
+
 
   const cartItems = cart?.products || [];
 
@@ -101,6 +119,7 @@ export default function CartPage() {
       setDiscountCode('');
     }
   };
+
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
   const shippingCost = appliedDiscount?.type === 'shipping' ? 0 : shippingOptions.find(opt => opt.id === selectedShipping)?.price || 0;
@@ -428,6 +447,20 @@ export default function CartPage() {
           )}
         </div>
       </div>
+
+      {showPrizeGrid && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <PrizeGrid
+            onWin={(discount) => {
+              console.log("Prize won:", discount);
+              if (discount) setAppliedDiscount(discount);
+              setPrizeApplied(true);
+            }}
+            onClose={() => setShowPrizeGrid(false)}
+          />
+        </div>
+      )}
+
     </div>
   );
 }
