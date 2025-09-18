@@ -1,10 +1,34 @@
 import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import cookieParser from 'cookie-parser';
+dotenv.config();
+import { connectDB } from './lib/db.js';
+import userRoutes from "./routes/user.route.js";
+import sellerRoutes from "./routes/seller.route.js";
+// import productRoutes from "./routes/product.route.js";
+// import orderRoutes from "./routes/order.route.js"; 
+const app = express();
+const PORT = process.env.PORT || 3000;
 
+app.use(cors());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
-const PORT = 3000;
+app.use("/api/user", userRoutes);    
+app.use("/api/seller", sellerRoutes);
 
+const startServer = async () => {
+  try {
+    await connectDB(); 
+    app.listen(PORT, () => {
+      console.log(`Server is running on port: ${PORT}`);
+    });
+  } catch (err) {
+    console.error('Failed to connect to DB:', err);
+    process.exit(1); 
+  }
+};
 
-server.listen(PORT, () => {
-  console.log(`Server is running on port: ${PORT}`);
-  connectDB();
-})
+startServer();
