@@ -4,7 +4,9 @@ import {
   loginHandler, 
   logoutHandler, 
   updateProfileHandler, 
-  checkAuthHandler
+  checkAuthHandler,
+  followSellerHandler,
+  unfollowSellerHandler
 } from "../controllers/user.controller.js";
 import { protectRoute, userOnly } from "../middlewares/auth.middleware.js";
 
@@ -20,5 +22,8 @@ router.put("/profile", protectRoute, userOnly, updateProfileHandler);
 
 router.get("/check", protectRoute, userOnly, checkAuthHandler);
 
+router.post("/:sellerId/follow", protectRoute, userOnly, followSellerHandler);
+
+router.post("/:sellerId/unfollow", protectRoute, userOnly, unfollowSellerHandler);
 
 export default router;

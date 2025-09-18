@@ -26,11 +26,6 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "https://img.myloview.com/stickers/default-avatar-profile-icon-vector-social-media-user-photo-700-205577532.jpg",
     },
-    role: {
-      type: String,
-      enum: ["buyer", "seller", "admin"],
-      default: "buyer",
-    },
     orderHistory: [
       {
         type: mongoose.Schema.Types.ObjectId,

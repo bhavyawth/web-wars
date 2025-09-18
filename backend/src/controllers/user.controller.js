@@ -2,6 +2,7 @@ import { generateToken } from '../lib/utils.js';
 import User from '../models/user.model.js';
 import bcrypt from 'bcryptjs';
 import cloudinary from '../lib/cloudinary.js';
+import Seller from '../models/seller.model.js';
 
 export const signupHandler = async (req, res) => {
   try {
@@ -27,7 +28,8 @@ export const signupHandler = async (req, res) => {
 
     return res.status(201).json({ 
       message: "User created successfully", 
-      user: newUser
+      user: newUser,
+      type: "user"
     });
 
   } catch (error) {
@@ -58,7 +60,8 @@ export const loginHandler = async (req, res) => {
 
     return res.status(200).json({
       message: "Login successful",
-      user
+      user,
+      type: "user"
     });
 
   } catch (error) {
@@ -103,7 +106,8 @@ export const updateProfileHandler = async (req, res) => {
 
     return res.status(200).json({
       message: "Profile updated successfully",
-      user: updatedUser
+      user: updatedUser,
+      type: "user"
     });
 
   } catch (error) {
@@ -123,10 +127,67 @@ export const checkAuthHandler = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    return res.status(200).json({ user });
+    return res.status(200).json({ user,
+      type: "user" });
 
   } catch (error) {
     console.log("Error in checkAuthHandler:", error);
     res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
+
+export const followSellerHandler = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { sellerId } = req.params;
+
+    if (!sellerId) return res.status(400).json({ message: "Seller ID is required" });
+
+    const user = await User.findById(userId);
+    const seller = await Seller.findById(sellerId);
+
+    if (!seller) return res.status(404).json({ message: "Seller not found" });
+
+    if (user.follows.includes(sellerId))
+      return res.status(400).json({ message: "Already following this seller" });
+
+    user.follows.push(sellerId);
+    await user.save();
+
+    seller.followers = seller.followers || [];
+    seller.followers.push(userId);
+    await seller.save();
+
+    res.json({ message: `You are now following ${seller.businessName}` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error", error: err.message });
+  }
+};
+
+
+export const unfollowSellerHandler = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { sellerId } = req.params;
+
+    if (!sellerId) return res.status(400).json({ message: "Seller ID is required" });
+
+    const user = await User.findById(userId);
+    const seller = await Seller.findById(sellerId);
+
+    if (!seller) return res.status(404).json({ message: "Seller not found" });
+
+    user.follows = user.follows.filter(id => id.toString() !== sellerId);
+    await user.save();
+
+    seller.followers = (seller.followers || []).filter(id => id.toString() !== userId.toString());
+    await seller.save();
+
+    res.json({ message: `You have unfollowed ${seller.businessName}` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error", error: err.message });
   }
 };

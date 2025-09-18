@@ -7,7 +7,7 @@ import {
   deleteProduct
 } from "../controllers/product.controller.js";
 import upload from "../middlewares/multer.middleware.js";
-import { protectRoute, sellerOnly } from "../middleware/authMiddleware.js";
+import { protectRoute, sellerOnly } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 

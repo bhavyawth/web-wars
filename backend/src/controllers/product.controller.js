@@ -1,5 +1,5 @@
 import Product from "../models/product.model.js";
-import cloudinary from "../config/cloudinary.js";
+import cloudinary from "../lib/cloudinary.js";
 
 
 export const createProduct = async (req, res) => {
@@ -9,14 +9,13 @@ export const createProduct = async (req, res) => {
     let imageUrls = [];
     if (req.files) {
       for (const file of req.files) {
-        const result = await cloudinary.uploader.upload_stream(
-          { folder: "products" },
-          (error, result) => {
-            if (error) throw error;
-            return result;
-          }
-        ).end(file.buffer);
-
+        const result = await new Promise((resolve, reject) => {
+          const stream = cloudinary.uploader.upload_stream(
+            { folder: "products" },
+            (err, result) => (err ? reject(err) : resolve(result))
+          );
+          stream.end(file.buffer);
+        });
         imageUrls.push(result.secure_url);
       }
     }
@@ -28,7 +27,7 @@ export const createProduct = async (req, res) => {
       price,
       category,
       images: imageUrls,
-      tags: tags ? tags.split(",") : [],
+      tags: Array.isArray(tags) ? tags : tags.split(","),
       quantity,
     });
 
@@ -48,15 +47,15 @@ export const updateProduct = async (req, res) => {
     if (product.seller.toString() !== req.user.sellerId)
       return res.status(403).json({ message: "Not authorized" });
 
-    const { title, description, price, category, tags, quantity, images: keepImages } = req.body;
+    const { title, description, price, category, tags, quantity, images } = req.body;
 
     if (title) product.title = title;
     if (description) product.description = description;
     if (price) product.price = price;
     if (category) product.category = category;
-    if (tags) product.tags = tags.split(",");
+    if (tags) product.tags = Array.isArray(tags) ? tags : tags.split(",");
     if (quantity) product.quantity = quantity;
-
+    const keepImages = Array.isArray(images) ? images : []; //edge case checkin
     const imagesToDelete = product.images.filter(img => !keepImages.includes(img));
     for (const url of imagesToDelete) {
       const segments = url.split("/");
@@ -90,9 +89,6 @@ export const updateProduct = async (req, res) => {
   }
 };
 
-import Product from "../models/Product.js";
-
-// GET ALL PRODUCTS (with optional filters)
 export const getProducts = async (req, res) => {
   try {
     const { category, minPrice, maxPrice, search } = req.query;
