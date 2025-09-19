@@ -14,11 +14,13 @@ const router = Router();
 //for users
 router.post("/", protectRoute, userOnly, createOrder);
 router.get("/", protectRoute, userOnly, getUserOrders);
-router.get("/:id", protectRoute, userOnly, getOrderById);
 
-//for thee sellers
+//for sellers - PUT SPECIFIC ROUTES BEFORE PARAMETERIZED ROUTES
+router.get("/all", protectRoute, sellerOnly, getAllOrders); // ✅ Move this BEFORE /:id
 router.put("/:id/status", protectRoute, sellerOnly, updateOrderStatus);
 router.delete("/:id", protectRoute, sellerOnly, deleteOrder);
-router.get("/all", protectRoute, sellerOnly, getAllOrders);
+
+// PUT PARAMETERIZED ROUTES LAST
+router.get("/:id", protectRoute, userOnly, getOrderById); // ✅ Move this AFTER /all
 
 export default router;

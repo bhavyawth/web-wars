@@ -92,7 +92,7 @@ export default function SellerDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br  from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
       {/* Seller Navigation */}
       <motion.nav
         className="sticky top-0 left-0 right-0 bg-gradient-to-r from-slate-900/95 via-purple-900/95 to-slate-900/95 backdrop-blur-md border-t border-white/10 z-50"
@@ -163,7 +163,7 @@ export default function SellerDashboard() {
 
 
       {/* Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 px-8 mt-12">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-12 px-8 mt-12 ">
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}

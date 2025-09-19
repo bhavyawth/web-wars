@@ -5,6 +5,7 @@ import { Chart as ChartJS, CategoryScale, LinearScale, BarElement, Title, Toolti
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import useAuthUser from '../hooks/useAuthUser';
 import { getAllProducts, createProduct, updateProduct, deleteProduct, getFollowers } from '../lib/api';
+import { BouncingDotsLoader } from '../components/Loading';
 
 // Register ChartJS components
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -156,9 +157,7 @@ export default function SellerCorner() {
 
   if (authLoading || productsLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center text-white text-xl">
-        Loading Seller Corner...
-      </div>
+      <BouncingDotsLoader/>
     );
   }
 

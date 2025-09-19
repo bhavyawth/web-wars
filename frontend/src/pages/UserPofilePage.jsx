@@ -161,7 +161,7 @@ export default function UserProfilePage() {
                   className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => navigate(-1)}
+                  onClick={() => navigate("/market")}
                 >
                   <ArrowLeft className="text-white" size={20} />
                 </motion.button>

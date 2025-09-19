@@ -473,7 +473,7 @@ export default function OrderDetailsPage() {
                   )}
                   
                   <motion.button
-                    onClick={() => navigate('/profile')}
+                    onClick={() => navigate('/user')}
                     className="w-full bg-white/10 text-white font-semibold py-3 rounded-xl hover:bg-white/20 transition-all"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}

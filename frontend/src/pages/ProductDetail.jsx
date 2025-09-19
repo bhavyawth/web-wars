@@ -34,8 +34,11 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import useAuthUser from "../hooks/useAuthUser.js";
 import { axiosInstance } from '../lib/axios.js';
+import { BouncingDotsLoader } from '../components/Loading.jsx';
 
 export default function ProductDetailPage() {
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [loadingFollow, setLoadingFollow] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -53,6 +56,30 @@ export default function ProductDetailPage() {
   const backgroundX = useTransform(mouseX, [0, typeof window !== 'undefined' ? window.innerWidth : 1920], [-30, 30]);
   const backgroundY = useTransform(mouseY, [0, typeof window !== 'undefined' ? window.innerHeight : 1080], [-20, 20]);
   
+
+  
+const toggleFollow = async () => {
+    if (!authUser) {
+      alert("Please login first");
+      return;
+    }
+    try {
+      setLoadingFollow(true);
+      if (isFollowing) {
+        await axiosInstance.post(`/user/${data.seller._id}/unfollow`);
+        setIsFollowing(false);
+      } else {
+        await axiosInstance.post(`/user/${data.seller._id}/follow`);
+        setIsFollowing(true);
+      }
+    } catch (err) {
+      console.error(err);
+      alert(err.response?.data?.message || "Failed to follow/unfollow");
+    } finally {
+      setLoadingFollow(false);
+    }
+  };
+
   const queryClient = useQueryClient();
   const { id } = useParams();
   useEffect(() => {
@@ -239,15 +266,7 @@ export default function ProductDetailPage() {
   const navigate=useNavigate()
   if (!mounted || isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <motion.div 
-          className="text-white text-xl"
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-        >
-          Loading artisan details...
-        </motion.div>
-      </div>
+      <BouncingDotsLoader/>
     );
   }
 
@@ -288,7 +307,7 @@ export default function ProductDetailPage() {
                 <ArrowLeft className="text-white" size={20} />
               </motion.button>
               <div>
-                <h1 className="text-xl font-bold text-white">Artisan Connect</h1>
+                <h1 className="text-xl font-bold text-white">BaskIt</h1>
                 <p className="text-white/50 text-sm">Product Details</p>
               </div>
             </div>
@@ -566,13 +585,8 @@ export default function ProductDetailPage() {
                     <span className="text-white/80">{product.artisan.rating.toFixed(1)}</span>
                     <span className="text-white/60">• {product.artisan.followers} followers</span>
                   </div>
-                  <motion.button
-                    className="px-6 py-2 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full text-white font-medium hover:from-purple-600 hover:to-pink-600 transition-all"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    Follow Artisan
-                  </motion.button>
+                  
+
                 </div>
               </div>
               <div className="md:col-span-2">

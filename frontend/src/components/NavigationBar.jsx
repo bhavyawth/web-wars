@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Menu, X, Home, ShoppingBag, Info, Phone, Sparkles, Heart } from 'lucide-react';
+import { Menu, X, Home, ShoppingBag, Info, Phone, Sparkles, Heart, ShoppingBasket, Computer } from 'lucide-react';
+import useAuthUser from '../hooks/useAuthUser';
 
 
 export default function ArtisanPremiumNavbar({
@@ -9,13 +10,12 @@ export default function ArtisanPremiumNavbar({
   const [sparkles, setSparkles] = useState([]);
   const rootRef = useRef(null);
 
-
+  const {isLoading,authUser,type}=useAuthUser()
   const menu = menuItems ?? [
-    { label: 'Discover', icon: <Home size={18} />, href: '/' },
+    { label: 'Home', icon: <Home size={18} />, href: '/' },
     { label: 'Shop', icon: <ShoppingBag size={18} />, href: '/market' },
-    { label: 'Artisans', icon: <Heart size={18} />, href: '#' },
-    { label: 'About', icon: <Info size={18} />, href: '/' },
-    { label: 'Connect', icon: <Phone size={18} />, href: '#' },
+    { label: 'Cart', icon: <ShoppingBasket size={18} />, href: '/cart' },
+    { label: `Explore`, icon: <Computer size={18} />, href: '/market' },
   ];
 
 

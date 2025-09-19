@@ -127,10 +127,10 @@ export default function ArtisanLanding() {
         
         {/* Clean logo */}
         <motion.div 
-          className="mb-16 text-white/90 text-xl font-medium tracking-wider"
+          className="mb-16 text-white/90 text-7xl font-medium tracking-wider"
           variants={itemVariants}
         >
-          Artisan Connect
+          BaskIt
         </motion.div>
 
         {/* Main heading */}

@@ -253,7 +253,7 @@ export default function CartPage() {
                 className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold px-8 py-3 rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/market')}
               >
                 Start Shopping
               </motion.button>

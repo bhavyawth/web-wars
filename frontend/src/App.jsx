@@ -18,11 +18,13 @@ import VerifySeller from "./pages/VerifySeller.jsx";
 import OrderDetailsPage from "./pages/OrderDetails.jsx";
 
 import { Toaster } from 'react-hot-toast';
+import { BouncingDotsLoader } from "./components/Loading.jsx";
+import AdminOrderManagement from "./pages/AdminOrderManagement.jsx";
 function App() {
   const { isLoading, authUser,type } = useAuthUser();
   const isAuthenticated = Boolean(authUser);
   if (isLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">Loading...</div>; // Simple loader
+    return <BouncingDotsLoader/>; // Simple loader
   }
 
   return (
@@ -78,7 +80,7 @@ function App() {
           path="/seller/dashboard"
           element={isAuthenticated && type=="seller"? <SellerCorner /> : <Navigate to="/market" />} // Similar for seller
         />
-        <Route path="/cart" element={isAuthenticated?<CartPage/>:<Navigate to={"/"}/>}/>
+        <Route path="/cart" element={isAuthenticated && type=="user"?<CartPage/>:<Navigate to={"/"}/>}/>
 
         <Route path="/seller/login" 
           element={!isAuthenticated ? <SellerLoginPage /> : <Navigate to="/sellermarket" />}
@@ -89,7 +91,7 @@ function App() {
         />
 
         <Route path="/sellermarket/verify" element={<VerifySeller />} />
-
+          <Route path="/admin" element={(type==="seller" && authUser.email==="abhinav@gmail.com") ? <AdminOrderManagement /> :type==="user"?<Navigate to={"/market"}/>:<Navigate to={"/sellerMarket"}/>}></Route>
       </Routes>
 
           

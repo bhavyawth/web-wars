@@ -44,6 +44,7 @@ export const getAllProducts = async ()=>{
 export const getProduct = async (id)=>{
   try {
     const res= await axiosInstance.get(`/products/${id}`);
+    console.log(res)
     return res.data
   } catch (error) {
     console.log("lawda product",error)
@@ -559,5 +560,21 @@ export const sendVerificationEmail = async () => {
 // Verify seller (called when they click a verification link in email)
 export const verifySellerEmail = async (token) => {
   const response = await axiosInstance.get(`/seller/verify?token=${token}`);
+  return response.data;
+};
+
+// Add these to your api.js file
+export const getAllOrders = async () => {
+  const response = await axiosInstance.get('/orders/all', { withCredentials: true });
+  return response.data;
+};
+
+export const updateOrderStatus = async (orderId, statusData) => {
+  const response = await axiosInstance.put(`/orders/${orderId}/status`, statusData, { withCredentials: true });
+  return response.data;
+};
+
+export const deleteOrder = async (orderId) => {
+  const response = await axiosInstance.delete(`/orders/${orderId}`, { withCredentials: true });
   return response.data;
 };

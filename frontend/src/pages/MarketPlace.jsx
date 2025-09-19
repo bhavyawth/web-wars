@@ -6,6 +6,7 @@ import { getAllProducts, getProduct, logout, addToCart } from '../lib/api';
 import { useNavigate, Link } from 'react-router-dom';
 import useAuthUser from '../hooks/useAuthUser';
 import { axiosInstance } from '../lib/axios';
+import { BouncingDotsLoader } from '../components/Loading';
 
 export default function ArtisanMarketplace() {
   const [change,setChange]=useState(true)
@@ -165,13 +166,7 @@ export default function ArtisanMarketplace() {
   if (!mounted || isProductLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
-        <motion.div 
-          className="text-white text-xl"
-          animate={{ opacity: [0.5, 1, 0.5] }}
-          transition={{ duration: 1.5, repeat: Infinity }}
-        >
-          {isProductLoading ? 'Loading products...' : 'Curating artisan treasures...'}
-        </motion.div>
+        <BouncingDotsLoader/>
       </div>
     );
   }
@@ -200,7 +195,7 @@ export default function ArtisanMarketplace() {
             <motion.div whileHover={{ scale: 1.05 }} className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
               <ShoppingBag size={16} className="text-white" />
             </motion.div>
-            Artisan Connect
+            BaskIt
           </Link>
 
           {/* Center: Navigation Links (if needed) */}
