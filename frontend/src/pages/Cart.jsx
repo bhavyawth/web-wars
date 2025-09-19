@@ -1,21 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom'; // Add this import
 import PrizeGrid from '../components/PrizeGrid';
 import { 
   ShoppingBag, Trash2, Plus, Minus, Heart, 
   ArrowLeft, Tag, Truck, Shield, Star,
-  Gift, Clock, CreditCard, CheckCircle2
+  Gift, Clock, CreditCard, CheckCircle2, Loader
 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getCart, updateCartItem, removeCartItem, clearCart, checkoutCart } from '../lib/api';
+import { 
+  getCart, 
+  updateCartItem, 
+  removeCartItem, 
+  clearCart, 
+  createOrder // Add this import
+} from '../lib/api';
+import useAuthUser from '../hooks/useAuthUser';
 
 export default function CartPage() {
+  const { isLoading: aha, authUser } = useAuthUser();
+  const navigate = useNavigate(); // Add this
+  
   const [discountCode, setDiscountCode] = useState('');
   const [appliedDiscount, setAppliedDiscount] = useState(null);
   const [selectedShipping, setSelectedShipping] = useState('standard');
   const [mounted, setMounted] = useState(false);
   const [savedItems, setSavedItems] = useState([]); // Keep local for "save for later"
-
   const [showPrizeGrid, setShowPrizeGrid] = useState(false);
   const [prizeApplied, setPrizeApplied] = useState(false);
 
@@ -43,13 +53,19 @@ export default function CartPage() {
     onSuccess: () => queryClient.invalidateQueries(['cart']),
   });
 
+  // Updated checkout mutation
   const checkoutMutation = useMutation({
-    mutationFn: checkoutCart,
-    onSuccess: () => {
+    mutationFn: createOrder,
+    onSuccess: (response) => {
       queryClient.invalidateQueries(['cart']);
-      // Redirect or show success (e.g., to orders page)
-      alert('Checkout successful!');
+      clearCartMutation.mutate()
+      alert('Order placed successfully!');
+      // Redirect to orders page or order confirmation
+      navigate(`/orders/${response.order._id}`);
     },
+    onError: (error) => {
+      alert(error.response?.data?.message || 'Failed to place order');
+    }
   });
 
   const shippingOptions = [
@@ -67,6 +83,7 @@ export default function CartPage() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
   useEffect(() => {
     if (!mounted || prizeApplied || !cart) return;
 
@@ -80,7 +97,6 @@ export default function CartPage() {
       setShowPrizeGrid(true);
     }
   }, [cart, mounted, prizeApplied]);
-
 
   const cartItems = cart?.products || [];
 
@@ -120,6 +136,32 @@ export default function CartPage() {
     }
   };
 
+  // Updated handleCheckout function
+  const handleCheckout = async () => {
+    // Check if user is logged in
+    if (!authUser) {
+      alert('Please login to proceed with checkout');
+      return;
+    }
+
+    // Check if user has address
+    if (!authUser.address ) {
+      alert('Please update your address in profile to proceed with checkout');
+      return;
+    }
+
+    // Transform cart data to order format
+    const orderData = {
+      products: cartItems.map(item => ({
+        productId: item.product._id,
+        quantity: item.quantity
+      })),
+      shippingAddress: authUser.address,
+      paymentMethod: 'cod' // Cash on delivery
+    };
+
+    checkoutMutation.mutate(orderData);
+  };
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
   const shippingCost = appliedDiscount?.type === 'shipping' ? 0 : shippingOptions.find(opt => opt.id === selectedShipping)?.price || 0;
@@ -127,7 +169,7 @@ export default function CartPage() {
                         appliedDiscount?.type === 'fixed' ? Math.min(appliedDiscount.value, subtotal) : 0;
   const tax = (subtotal - discountAmount) * 0.08; // 8% tax
   const total = subtotal - discountAmount + shippingCost + tax;
-  console.log(cartItems)
+
   if (!mounted) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 flex items-center justify-center">
@@ -160,11 +202,12 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      {/* Background Effects */}
+      {/* Keep all existing background and header code */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 right-0 w-96 h-96 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full blur-3xl"></div>
       </div>
+
       <div className="relative z-10">
         {/* Header */}
         <motion.header 
@@ -195,6 +238,7 @@ export default function CartPage() {
             </div>
           </div>
         </motion.header>
+
         <div className="max-w-7xl mx-auto px-6 py-8">
           {cartItems.length === 0 ? (
             <motion.div 
@@ -209,13 +253,14 @@ export default function CartPage() {
                 className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold px-8 py-3 rounded-xl hover:from-purple-600 hover:to-pink-600 transition-all"
                 whileHover={{ scale: 1.05, y: -2 }}
                 whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/')}
               >
                 Start Shopping
               </motion.button>
             </motion.div>
           ) : (
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Cart Items */}
+              {/* Cart Items - Keep existing code */}
               <div className="lg:col-span-2 space-y-6">
                 <motion.div 
                   className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-6"
@@ -227,6 +272,7 @@ export default function CartPage() {
                     <ShoppingBag className="text-purple-400" size={24} />
                     Cart Items ({cartItems.length})
                   </h2>
+
                   <AnimatePresence>
                     {cartItems.map((item, index) => (
                       <motion.div
@@ -240,11 +286,12 @@ export default function CartPage() {
                         {/* Product Image */}
                         <div className="relative w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
                           <img 
-                            src={item.product.images[0]} 
+                            src={item.product.images?.[0] || 'https://via.placeholder.com/100'} 
                             alt={item.product.title}
                             className="w-full h-full object-cover"
                           />
                         </div>
+
                         {/* Product Details */}
                         <div className="flex-1">
                           <div className="flex justify-between items-start mb-2">
@@ -265,7 +312,7 @@ export default function CartPage() {
                               </div>
                             </div>
                           </div>
-                          {/* Variants (if any, from your dummy) */}
+
                           {/* Quantity Controls & Actions */}
                           <div className="flex justify-between items-center">
                             <div className="flex items-center gap-3">
@@ -290,6 +337,7 @@ export default function CartPage() {
                                 Total: ${(item.product.price * item.quantity).toFixed(2)}
                               </span>
                             </div>
+
                             <div className="flex items-center gap-2">
                               <motion.button
                                 onClick={() => saveForLater(item.product._id)}
@@ -314,9 +362,8 @@ export default function CartPage() {
                     ))}
                   </AnimatePresence>
                 </motion.div>
-                {/* Saved Items */}
-                
               </div>
+
               {/* Order Summary */}
               <div className="space-y-6">
                 <motion.div 
@@ -326,6 +373,17 @@ export default function CartPage() {
                   transition={{ duration: 0.8 }}
                 >
                   <h3 className="text-2xl font-bold text-white mb-6">Order Summary</h3>
+
+                  {/* User Address Display */}
+                  {authUser?.address && (
+                    <div className="mb-6 p-4 bg-white/5 rounded-lg border border-white/10">
+                      <h4 className="text-white font-medium mb-2">Shipping Address</h4>
+                      <div className="text-white/80 text-sm">
+                        <p>{authUser.address}</p>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Discount Code */}
                   <div className="mb-6">
                     <label className="text-white/80 text-sm font-medium mb-2 block">Promo Code</label>
@@ -352,6 +410,7 @@ export default function CartPage() {
                       </div>
                     )}
                   </div>
+
                   {/* Shipping Options */}
                   <div className="mb-6">
                     <label className="text-white/80 text-sm font-medium mb-3 block">Shipping Options</label>
@@ -390,6 +449,7 @@ export default function CartPage() {
                       ))}
                     </div>
                   </div>
+
                   {/* Order Totals */}
                   <div className="space-y-3 border-t border-white/20 pt-4">
                     <div className="flex justify-between text-white/70">
@@ -415,17 +475,42 @@ export default function CartPage() {
                       <span>${total.toFixed(2)}</span>
                     </div>
                   </div>
-                  {/* Checkout Button */}
+
+                  {/* Payment Method Display */}
+                  <div className="bg-white/5 rounded-lg p-3 mt-4">
+                    <div className="flex items-center gap-2 text-white/80 text-sm">
+                      <CreditCard size={16} />
+                      <span>Payment Method: Cash on Delivery</span>
+                    </div>
+                  </div>
+
+                  {/* Updated Checkout Button */}
                   <motion.button
-                    onClick={() => checkoutMutation.mutate({ shippingAddress: 'Dummy Address', paymentMethod: 'cod' })} // Replace with real form data
-                    className="w-full bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold py-4 rounded-xl mt-6 hover:from-purple-600 hover:to-pink-600 transition-all shadow-lg flex items-center justify-center gap-2"
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
-                    disabled={checkoutMutation.isLoading}
+                    onClick={handleCheckout}
+                    disabled={checkoutMutation.isLoading || !authUser}
+                    className={`w-full font-bold py-4 rounded-xl mt-6 transition-all shadow-lg flex items-center justify-center gap-2 ${
+                      checkoutMutation.isLoading || !authUser
+                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                        : 'bg-gradient-to-r from-purple-500 to-pink-500 text-white hover:from-purple-600 hover:to-pink-600'
+                    }`}
+                    whileHover={!checkoutMutation.isLoading && authUser ? { scale: 1.02, y: -2 } : {}}
+                    whileTap={!checkoutMutation.isLoading && authUser ? { scale: 0.98 } : {}}
                   >
-                    <CreditCard size={20} />
-                    Proceed to Checkout
+                    {checkoutMutation.isLoading ? (
+                      <>
+                        <Loader className="animate-spin" size={20} />
+                        Processing Order...
+                      </>
+                    ) : !authUser ? (
+                      'Login to Checkout'
+                    ) : (
+                      <>
+                        <CreditCard size={20} />
+                        Place Order - ${total.toFixed(2)}
+                      </>
+                    )}
                   </motion.button>
+
                   {/* Clear Cart Button */}
                   <motion.button
                     onClick={() => clearCartMutation.mutate()}
@@ -433,15 +518,15 @@ export default function CartPage() {
                     whileHover={{ scale: 1.02 }}
                     disabled={clearCartMutation.isLoading}
                   >
-                    Clear Cart
+                    {clearCartMutation.isLoading ? 'Clearing...' : 'Clear Cart'}
                   </motion.button>
+
                   {/* Security Badge */}
                   <div className="flex items-center justify-center gap-2 text-white/60 text-sm mt-4">
                     <Shield size={16} />
-                    <span>Secure checkout powered by Stripe</span>
+                    <span>Secure checkout with COD</span>
                   </div>
                 </motion.div>
-                {/* Recently Viewed or other sections can remain dummy */}
               </div>
             </div>
           )}
@@ -460,7 +545,6 @@ export default function CartPage() {
           />
         </div>
       )}
-
     </div>
   );
 }

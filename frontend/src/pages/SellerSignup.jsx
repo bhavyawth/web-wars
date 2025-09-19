@@ -151,7 +151,7 @@ export default function SellerSignupPage() {
           </form>
           <p className="mt-6 text-center text-white/60">
             Already have an account?{" "}
-            <a href="/login" className="text-purple-400 hover:text-pink-400 font-semibold">
+            <a href="/seller/login" className="text-purple-400 hover:text-pink-400 font-semibold">
               Login
             </a>
           </p>

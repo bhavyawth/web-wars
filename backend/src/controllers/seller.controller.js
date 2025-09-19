@@ -3,7 +3,7 @@ import Seller from '../models/seller.model.js';
 import bcrypt from 'bcryptjs';
 import cloudinary from '../lib/cloudinary.js';
 import { createVerificationToken, sendVerificationEmail } from "../lib/utils.js";
-
+import crypto from "crypto";
 export const signupHandler = async (req, res) => {
   try {
     const { email, fullName, password, businessName, description } = req.body;
@@ -213,9 +213,13 @@ export const verifySeller = async (req, res) => {
 
     await seller.save();
 
-    res.json({ message: "Seller verified successfully!" });
+    return res.status(200).json({
+      success: true,
+      message: "Email verified successfully",
+      verified: true,
+    });
   } catch (err) {
     console.error("Error in verifySeller:", err);
-    res.status(500).json({ message: "Verification failed" });
+    res.status(500).json({ message: "Verification failed in backmacha" });
   }
 };

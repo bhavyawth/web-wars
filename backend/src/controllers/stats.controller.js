@@ -38,14 +38,6 @@ export const getCategoriesStats = async (req, res) => {
 
 export const getSellerStats = async (req, res) => {
   try {
-    const { city } = req.query;
-
-    const matchStage = {};
-    if (city) {
-      const sellersInCity = await Seller.find({ city }).select("_id");
-      matchStage["productInfo.seller"] = { $in: sellersInCity.map(s => s._id) };
-    }
-
     const stats = await Order.aggregate([
       { $unwind: "$products" },
       {
@@ -57,9 +49,6 @@ export const getSellerStats = async (req, res) => {
         }
       },
       { $unwind: "$productInfo" },
-      {
-        $match: matchStage
-      },
       {
         $group: {
           _id: "$productInfo.seller",
@@ -81,7 +70,6 @@ export const getSellerStats = async (req, res) => {
 
     res.json(stats.map(item => ({
       seller: item.sellerInfo.businessName,
-      city: item.sellerInfo.city,
       totalSales: item.totalSales,
       totalQuantity: item.totalQuantity
     })));

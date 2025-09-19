@@ -140,3 +140,22 @@ export const deleteProduct = async (req, res) => {
     res.status(500).json({ message: "Internal server error", error: err.message });
   }
 };
+
+export const getProductBySellerId = async (req, res) => {
+  try {
+    const sellerId = req.params.id;
+
+    const products = await Product.find({ seller: sellerId })
+      .populate("seller", "businessName verified") // populate basic seller info
+      .sort({ createdAt: -1 }); // newest first
+
+    if (!products || products.length === 0) {
+      return res.status(404).json({ message: "No products found for this seller" });
+    }
+
+    res.json(products);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Internal server error", error: err.message });
+  }
+};

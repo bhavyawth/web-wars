@@ -36,7 +36,9 @@ export const protectRoute = async (req, res, next) => {
 
 export const sellerOnly = (req, res, next) => {
   try {
-    console.log('aha')
+    if (!req.user || req.user.type !== "seller") {
+      return res.status(403).json({ message: "Access denied: sellers only" });
+    }
     next();
   } catch (error) {
     console.error("Error in sellerOnly middleware:", error);

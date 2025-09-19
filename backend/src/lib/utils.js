@@ -36,7 +36,7 @@ const transporter = nodemailer.createTransport({
 });
 
 export async function sendVerificationEmail(email, plainToken) {
-  const verifyUrl = `${process.env.FRONTEND_URL}/seller/verify?token=${plainToken}`;
+  const verifyUrl = `${process.env.FRONTEND_URL}/sellermarket/verify?token=${plainToken}`;
   const html = `
     <div style="font-family: Arial, sans-serif; color: #333;">
       <h2 style="color: #4CAF50;">Your Seller Verification Awaits! 🎉</h2>

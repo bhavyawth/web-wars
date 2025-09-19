@@ -27,6 +27,6 @@ router.get("/:id/followers", protectRoute, sellerOnly, getFollowersHandler);
 
 router.post("/send-verification", protectRoute, sellerOnly, sendVerificationHandler);
 
-router.post("/verify/", protectRoute, sellerOnly, verifySeller);
+router.get("/verify", verifySeller);
 
 export default router;

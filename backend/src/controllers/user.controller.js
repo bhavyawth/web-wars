@@ -6,7 +6,7 @@ import Seller from '../models/seller.model.js';
 
 export const signupHandler = async (req, res) => {
   try {
-    const { email, fullName, password } = req.body;
+    const { email, fullName, password ,address} = req.body;
     if (!email || !fullName || !password) {
       return res.status(400).json({ message: "All fields are required" });
     }
@@ -21,6 +21,7 @@ export const signupHandler = async (req, res) => {
       email,
       fullName,
       password: hashedPassword,
+      address
     });
 
     // Generate JWT for this user with type 'user'
@@ -191,3 +192,4 @@ export const unfollowSellerHandler = async (req, res) => {
     res.status(500).json({ message: "Internal server error", error: err.message });
   }
 };
+

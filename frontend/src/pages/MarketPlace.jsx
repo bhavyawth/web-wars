@@ -5,8 +5,24 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getAllProducts, getProduct, logout, addToCart } from '../lib/api';
 import { useNavigate, Link } from 'react-router-dom';
 import useAuthUser from '../hooks/useAuthUser';
+import { axiosInstance } from '../lib/axios';
 
 export default function ArtisanMarketplace() {
+  const [change,setChange]=useState(true)
+  
+    const [cartQuantity,setCartQuantity]=useState("-");
+  useEffect(()=>{
+    const getQuantity=async ()=>{
+      let temp=0;
+      const res = await axiosInstance.get("/cart")
+      const prodArr=res.data.products;
+      prodArr.map((item)=>{
+        temp+=item?.quantity
+      })
+      setCartQuantity(temp)
+    }
+    getQuantity()
+  },[change])
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [favorites, setFavorites] = useState(new Set());
@@ -28,12 +44,14 @@ export default function ArtisanMarketplace() {
     mutationFn: logout,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['authUser'] });
-      navigate('/seller/login'); // Redirect to login after logout
+  
+
+      navigate('/'); // Redirect to login after logout
     },
   });
 
   const handleLogout = () => {
-    logoutMutation();
+    logoutMutation(type === 'seller' ? 'seller' : 'user');
     setIsProfileOpen(false);
   };
 
@@ -126,6 +144,8 @@ export default function ArtisanMarketplace() {
     mutationFn: ({ productId, quantity }) => addToCart({ productId, quantity }),
     onSuccess: () => {
       // Optionally invalidate cart query or show success toast
+      setChange(prevChange=>!prevChange)
+
       alert('Added to cart!');
     },
     onError: (error) => {
@@ -167,94 +187,94 @@ export default function ArtisanMarketplace() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-       <motion.nav
-       className="sticky top-0 left-0 right-0 bg-gradient-to-r from-slate-900/95 via-purple-900/95 to-slate-900/95 backdrop-blur-md border-t border-white/10 z-50"
-       initial={{ y: 100 }}
-       animate={{ y: 0 }}
-       transition={{ type: "spring", damping: 25 }}
-     >
-       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-         {/* Company Name */}
-         <Link to="/" className="text-xl font-bold text-white flex items-center gap-2">
-           <motion.div whileHover={{ scale: 1.05 }} className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-             <ShoppingBag size={16} className="text-white" />
-           </motion.div>
-           Artisan Connect
-         </Link>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
+        <motion.nav
+        className="sticky top-0 left-0 right-0 bg-gradient-to-r from-slate-900/95 via-purple-900/95 to-slate-900/95 backdrop-blur-md border-t border-white/10 z-50"
+        initial={{ y: 100 }}
+        animate={{ y: 0 }}
+        transition={{ type: "spring", damping: 25 }}
+      >
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
+          {/* Company Name */}
+          <Link to="/" className="text-xl font-bold text-white flex items-center gap-2">
+            <motion.div whileHover={{ scale: 1.05 }} className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+              <ShoppingBag size={16} className="text-white" />
+            </motion.div>
+            Artisan Connect
+          </Link>
 
-         {/* Center: Navigation Links (if needed) */}
-
-
-         {/* Right: Favorites, Cart, Seller Corner (if seller), User Profile */}
-         <div className="flex items-center gap-4">
-           {/* Favorites (Heart) */}
+          {/* Center: Navigation Links (if needed) */}
 
 
-           {/* Cart */}
-           <motion.div whileHover={{ scale: 1.05 }} className="relative">
-             <Link to="/cart" className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all flex items-center gap-1">
-               <ShoppingBag size={20} className="text-white" />
-               <span className="text-white font-medium">3</span> {/* Dummy cart value */}
-             </Link>
-           </motion.div>
+          {/* Right: Favorites, Cart, Seller Corner (if seller), User Profile */}
+          <div className="flex items-center gap-4">
+            {/* Favorites (Heart) */}
 
-           {/* Seller Corner (if seller) */}
-           {type === 'seller' && (
-             <motion.button
-               whileHover={{ scale: 1.05 }}
-               className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium rounded-full hover:from-purple-600 hover:to-pink-600 transition-all"
-               onClick={() => navigate('/seller/dashboard')} // Navigate to seller dashboard
-             >
-               Seller Corner
-             </motion.button>
-           )}
 
-           {/* User Profile */}
-           {authUser ? (
-             <div className="relative">
-               <motion.img
-                 src={profilePic}
-                 alt="Profile"
-                 className="w-10 h-10 rounded-full cursor-pointer border-2 border-white/20 hover:border-purple-400 transition-all"
-                 whileHover={{ scale: 1.1 }}
-                 onMouseEnter={() => setIsProfileOpen(true)}
-                 onMouseLeave={() => setIsProfileOpen(false)}
-               />
-               <AnimatePresence>
-                 {isProfileOpen && (
-                   <motion.div
-                     initial={{ opacity: 0, y: -10,x:70 }}
-                     animate={{ opacity: 1, y: 4 }}
-                     exit={{ opacity: 0, y: -10 }}
-                     className="absolute right-0 mt-2 w-48 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-2 shadow-lg"
-                     onMouseEnter={() => setIsProfileOpen(true)}
-                     onMouseLeave={() => setIsProfileOpen(false)}
-                   >
-                     <Link to="/user" className="flex items-center gap-2 px-4 py-2 text-white hover:bg-white/20 rounded-lg transition-all">
-                       <UserIcon size={16} /> Profile
-                     </Link>
-                     <Link to="/orders" className="flex items-center gap-2 px-4 py-2 text-white hover:bg-white/20 rounded-lg transition-all">
-                       <ClipboardList size={16} /> Orders
-                     </Link>
-                     <button
-                       onClick={handleLogout}
-                       className="w-full flex items-center gap-2 px-4 py-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-all"
-                     >
-                       <LogOut size={16} /> Logout
-                     </button>
-                   </motion.div>
-                 )}
-               </AnimatePresence>
-             </div>
-           ) : (
-             <Link to="/login" className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20 transition-all">
-               Login
-             </Link>
-           )}
-         </div>
-       </div>
-     </motion.nav>
+            {/* Cart */}
+            {type === "user" && <motion.div whileHover={{ scale: 1.05 }} className="relative">
+              <Link to="/cart" className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all flex items-center gap-1">
+                <ShoppingBag size={20} className="text-white" />
+                <span className="text-white font-medium">{cartQuantity}</span> {/* Dummy cart value */}
+              </Link>
+            </motion.div>}
+
+            {/* Seller Corner (if seller) */}
+            {type === 'seller' && (
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                className="px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white font-medium rounded-full hover:from-purple-600 hover:to-pink-600 transition-all"
+                onClick={() => navigate('/sellermarket')} // Navigate to seller dashboard
+              >
+                Seller Corner
+              </motion.button>
+            )}
+
+            {/* User Profile */}
+            {authUser  ? type === "user" && (
+              <div className="relative">
+                <motion.img
+                  src={profilePic}
+                  alt="Profile"
+                  className="w-10 h-10 rounded-full cursor-pointer border-2 border-white/20 hover:border-purple-400 transition-all"
+                  whileHover={{ scale: 1.1 }}
+                  onMouseEnter={() => setIsProfileOpen(true)}
+                  onMouseLeave={() => setIsProfileOpen(false)}
+                />
+                <AnimatePresence>
+                  {isProfileOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10,x:70 }}
+                      animate={{ opacity: 1, y: 4 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute right-0 mt-2 w-48 bg-white/10 backdrop-blur-md rounded-xl border border-white/20 p-2 shadow-lg"
+                      onMouseEnter={() => setIsProfileOpen(true)}
+                      onMouseLeave={() => setIsProfileOpen(false)}
+                    >
+                      <Link to="/user" className="flex items-center gap-2 px-4 py-2 text-white hover:bg-white/20 rounded-lg transition-all">
+                        <UserIcon size={16} /> Profile
+                      </Link>
+                      <Link to="/orders" className="flex items-center gap-2 px-4 py-2 text-white hover:bg-white/20 rounded-lg transition-all">
+                        <ClipboardList size={16} /> Orders
+                      </Link>
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 px-4 py-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-all"
+                      >
+                        <LogOut size={16} /> Logout
+                      </button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ) : (
+              <Link to="/" className="px-4 py-2 bg-white/10 text-white rounded-full hover:bg-white/20 transition-all">
+                Login
+              </Link>
+            )}
+          </div>
+        </div>
+      </motion.nav>
       {/* Dynamic Background */}
       <motion.div 
         className="absolute inset-0 opacity-30"
@@ -495,7 +515,7 @@ export default function ArtisanMarketplace() {
                         </div>
                       )}
 
-                      <motion.button
+                      {type === "user" && <motion.button
                         onClick={(e) => {
                           e.stopPropagation(); // Prevent navigating to product details
                           handleAddToCart(product._id);
@@ -510,7 +530,7 @@ export default function ArtisanMarketplace() {
                         disabled={product.quantity === 0}
                       >
                         {product.quantity > 0 ? 'Add to Cart' : 'Out of Stock'}
-                      </motion.button>
+                      </motion.button> }
                     </div>
                   </div>
                 </motion.div>
