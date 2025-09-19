@@ -230,7 +230,7 @@ export default function OrderDetailsPage() {
                     <span className="font-medium capitalize">{order.orderStatus}</span>
                   </div>
                   
-                  <div className="text-white text-3xl font-bold">${order.totalAmount}</div>
+                  <div className="text-white text-3xl font-bold">₹{order.totalAmount}</div>
                   <div className={`text-sm ${getPaymentStatusColor(order.paymentStatus)}`}>
                     Payment: {order.paymentStatus}
                   </div>

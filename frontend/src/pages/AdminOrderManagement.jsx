@@ -164,7 +164,7 @@ export default function AdminOrderManagement() {
                   className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all"
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  onClick={() => navigate(-1)}
+                  onClick={() => navigate("/seller/dashboard")}
                 >
                   <ArrowLeft className="text-white" size={20} />
                 </motion.button>
@@ -174,16 +174,7 @@ export default function AdminOrderManagement() {
                 </div>
               </div>
               
-              <div className="flex items-center gap-3">
-                <motion.button
-                  onClick={() => refetch()}
-                  className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-all"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <RefreshCw className="text-white" size={20} />
-                </motion.button>
-              </div>
+              
             </div>
           </div>
         </motion.header>
@@ -294,7 +285,7 @@ export default function AdminOrderManagement() {
                             </div>
                             <div className="flex items-center gap-2">
                               <DollarSign size={14} />
-                              <span>${order.totalAmount}</span>
+                              <span>₹{order.totalAmount}</span>
                               <span className={`text-xs ${getPaymentStatusColor(order.paymentStatus)}`}>
                                 ({order.paymentStatus})
                               </span>

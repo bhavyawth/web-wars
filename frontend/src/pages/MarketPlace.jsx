@@ -483,7 +483,7 @@ export default function ArtisanMarketplace() {
                           </div>
                         </div>
                         <div className="text-right">
-                          <div className="text-2xl font-bold text-white">${product.price}</div>
+                          <div className="text-2xl font-bold text-white">₹{product.price}</div>
                           <div className="flex items-center gap-1">
                             <Star className="fill-yellow-400 text-yellow-400" size={14} />
                             <span className="text-white/60 text-sm">

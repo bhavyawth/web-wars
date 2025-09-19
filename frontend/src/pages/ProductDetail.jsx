@@ -438,7 +438,7 @@ const toggleFollow = async () => {
 
             {/* Pricing */}
             <div className="flex items-center gap-4">
-              <span className="text-4xl font-bold text-white">${product.price}</span>
+              <span className="text-4xl font-bold text-white">₹{product.price}</span>
               {product.originalPrice && (
                 <>
                   <span className="text-2xl text-white/50 line-through">${product.originalPrice}</span>
@@ -528,7 +528,7 @@ const toggleFollow = async () => {
                       Adding...
                     </>
                   ) : product.inStock > 0 ? (
-                    `Add to Cart - $${(product.price * quantity).toFixed(2)}`
+                    `Add to Cart - ₹${(product.price * quantity).toFixed(2)}`
                   ) : (
                     'Out of Stock'
                   )}
@@ -583,7 +583,7 @@ const toggleFollow = async () => {
                   <div className="flex items-center justify-center gap-1 mb-4">
                     <Star className="fill-yellow-400 text-yellow-400" size={14} />
                     <span className="text-white/80">{product.artisan.rating.toFixed(1)}</span>
-                    <span className="text-white/60">• {product.artisan.followers} followers</span>
+
                   </div>
                   
 

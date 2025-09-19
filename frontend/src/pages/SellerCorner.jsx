@@ -237,7 +237,7 @@ export default function SellerCorner() {
                 >
                   <img src={product.images[0]} alt={product.title} className="w-full h-48 object-cover rounded-lg mb-4" />
                   <h3 className="text-white font-semibold text-lg mb-2">{product.title.replace(/"/g, '').trim()}</h3>
-                  <p className="text-white/70 mb-2">${product.price}</p>
+                  <p className="text-white/70 mb-2">₹{product.price}</p>
                   <p className="text-white/70 mb-4">Quantity: {product.quantity}</p>
                   <div className="flex gap-4">
                     <button

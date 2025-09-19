@@ -15,7 +15,6 @@ export default function ArtisanPremiumNavbar({
     { label: 'Home', icon: <Home size={18} />, href: '/' },
     { label: 'Shop', icon: <ShoppingBag size={18} />, href: '/market' },
     { label: 'Cart', icon: <ShoppingBasket size={18} />, href: '/cart' },
-    { label: `Explore`, icon: <Computer size={18} />, href: '/market' },
   ];
 
 

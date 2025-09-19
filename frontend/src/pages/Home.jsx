@@ -218,37 +218,7 @@ export default function ArtisanLanding() {
           </motion.button>
         </motion.div>
 
-        {/* Stats */}
-        <motion.div 
-          className="flex flex-col sm:flex-row gap-8 text-white/60 text-sm"
-          variants={itemVariants}
-        >
-          {[
-            { number: "10k+", label: "Artisans" },
-            { number: "50+", label: "Countries" },
-            { number: "100k+", label: "Happy Customers" }
-          ].map((stat, index) => (
-            <motion.div 
-              key={stat.label}
-              className="text-center"
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 300 }}
-            >
-              <motion.div 
-                className="text-2xl font-bold text-white mb-1"
-                animate={{ opacity: [0.7, 1, 0.7] }}
-                transition={{ 
-                  duration: 2,
-                  repeat: Infinity,
-                  delay: index * 0.5
-                }}
-              >
-                {stat.number}
-              </motion.div>
-              <div className="tracking-wide">{stat.label}</div>
-            </motion.div>
-          ))}
-        </motion.div>
+        
       </motion.div>
 
       {/* Scroll indicator */}
@@ -262,7 +232,7 @@ export default function ArtisanLanding() {
           ease: "easeInOut"
         }}
       >
-        <div className="text-xl">↓</div>
+        <div className="text-xl"></div>
       </motion.div>
     </div>
   );
